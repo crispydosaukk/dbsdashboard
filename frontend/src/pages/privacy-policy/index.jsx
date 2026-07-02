@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
           <div className="space-y-4 text-white/80 leading-relaxed">
             <p className="text-sm text-white/50">Last updated: {new Date().toLocaleDateString()}</p>
             <p>
-              Catering Spice Ltd ("we", "our", or "us") operates the WatanStaff application (the "App"), a staff management and attendance monitoring platform. This Privacy Policy describes how we collect, use, and handle your information when you use our App.
+              Catering Spice Ltd ("we", "our", or "us") operates the DigitalBotSolutions application (the "App"), a staff management and attendance monitoring platform. This Privacy Policy describes how we collect, use, and handle your information when you use our App.
             </p>
             
             <h2 className="text-2xl font-semibold mt-6 text-white/90 border-b border-white/10 pb-2">1. Information We Collect</h2>

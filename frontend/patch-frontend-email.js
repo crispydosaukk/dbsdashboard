@@ -126,7 +126,7 @@ const emailReportLogic = `
       const reportHtml = \`<div style="font-family:Arial,Helvetica,sans-serif;background-color:#ffffff;padding:0;margin:0;color:#111827;">
         <div style="background-color:#0b1a3d;padding:28px 36px;">
           <table style="width:100%;border-collapse:collapse;"><tr>
-            <td><div style="color:#D0B079;font-size:24px;font-weight:900;">Watan Staff</div><div style="color:#9ca3af;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-top:3px;">Staff Attendance Report</div></td>
+            <td><div style="color:#D0B079;font-size:24px;font-weight:900;">DigitalBotSolutions</div><div style="color:#9ca3af;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-top:3px;">Staff Attendance Report</div></td>
             <td style="text-align:right;"><div style="color:white;font-size:18px;font-weight:800;">ATTENDANCE REPORT</div><div style="color:#9ca3af;font-size:11px;margin-top:3px;">Generated: \${reportDate}</div></td>
           </tr></table>
         </div>
@@ -144,13 +144,13 @@ const emailReportLogic = `
           </table>
         </div>
         <div style="background-color:#0b1a3d;padding:16px 36px;text-align:center;">
-          <div style="color:#6b7280;font-size:11px;">Watan Group - Confidential - Watan Staff Dashboard</div>
+          <div style="color:#6b7280;font-size:11px;">DigitalBotSolutions - Confidential - DigitalBotSolutions Dashboard</div>
         </div>
       </div>\`;
 
       const opt = {
         margin: [0.3, 0.3, 0.3, 0.3],
-        filename: \`Watan_Attendance_\${new Date().getTime()}.pdf\`,
+        filename: \`DigitalBotSolutions_Attendance_\${new Date().getTime()}.pdf\`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1024, allowTaint: true },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -163,7 +163,7 @@ const emailReportLogic = `
       const sendEmailReportFunc = httpsCallable(functionsInstance, "sendEmailReport");
       const emailHtmlBody = \`<div style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;">
           <div style="background:#0b1a3d;padding:30px;border-radius:12px 12px 0 0;text-align:center;">
-            <h1 style="color:#D0B079;margin:0;font-size:24px;font-weight:800;">Watan Group</h1>
+            <h1 style="color:#D0B079;margin:0;font-size:24px;font-weight:800;">DigitalBotSolutions</h1>
             <p style="color:#9ca3af;margin:8px 0 0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Staff Attendance Report</p>
           </div>
           <div style="background:#f9fafb;padding:30px;border:1px solid #e5e7eb;">
@@ -178,14 +178,14 @@ const emailReportLogic = `
             </div>
           </div>
           <div style="background:#0b1a3d;padding:20px;border-radius:0 0 12px 12px;text-align:center;">
-            <p style="color:#6b7280;font-size:12px;margin:0;">Watan Staff Dashboard - Confidential</p>
+            <p style="color:#6b7280;font-size:12px;margin:0;">DigitalBotSolutions Dashboard - Confidential</p>
           </div>
         </div>\`;
 
       await Promise.all([
         sendEmailReportFunc({
           to: "rahulbadugu22@gmail.com",
-          subject: \`Watan Group Attendance Report - \${reportDate}\`,
+          subject: \`DigitalBotSolutions Attendance Report - \${reportDate}\`,
           htmlBody: emailHtmlBody,
           attachmentUrl: pdfDataUri,
           attachmentName: opt.filename

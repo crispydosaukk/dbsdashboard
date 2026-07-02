@@ -167,7 +167,7 @@ export default function Sidebar({ open, onClose }) {
       >
         {/* Mobile Sidebar Header (Logo + Close) */}
         <div className="flex lg:hidden items-center justify-between px-6 pb-6 pt-12 border-b border-white/5">
-          <img src="/watanstafflogo.png" alt="Logo" className="h-12 w-auto object-contain" />
+          <img src="/digitalbotsolutions.jpeg" alt="Logo" className="h-12 w-auto object-contain" />
           <button 
             onClick={onClose} 
             className="p-2.5 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-2xl transition-all active:scale-90"
@@ -222,7 +222,7 @@ export default function Sidebar({ open, onClose }) {
             </div>
             <div className="min-w-0">
               <div className="text-[13px] font-semibold text-white/90 truncate">{userData?.name || "Admin"}</div>
-              <div className="text-[11px] text-white/40 truncate">{userData?.email || "admin@watanstaff.com"}</div>
+              <div className="text-[11px] text-white/40 truncate">{userData?.email || "admin@digitalbotsolutions.com"}</div>
             </div>
           </div>
 

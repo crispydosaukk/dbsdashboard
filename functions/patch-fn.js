@@ -25,7 +25,7 @@ exports.sendEmailReport = functions.https.onCall(async (data, context) => {
   });
 
   const mailOptions = {
-    from: '"Watan Staff Dashboard" <noreply@watan.com>',
+    from: '"DigitalBotSolutions Dashboard" <noreply@digitalbotsolutions.com>',
     to: to,
     subject: subject,
     html: htmlBody,

@@ -14,7 +14,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-2 text-xs">
-          © {new Date().getFullYear()} WatanStaff. All rights reserved.
+          © {new Date().getFullYear()} DigitalBotSolutions. All rights reserved.
         </div>
       </div>
     </footer>

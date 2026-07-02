@@ -11,7 +11,7 @@ export default function ContactSupport() {
           <h1 className="text-3xl font-bold mb-6 text-white drop-shadow-lg">Contact and Support</h1>
           <div className="space-y-6 text-white/80 leading-relaxed">
             <p>
-              We are here to help! If you have any questions, concerns, or need support with the WatanStaff application, please feel free to reach out to us using the contact information below.
+              We are here to help! If you have any questions, concerns, or need support with the DigitalBotSolutions application, please feel free to reach out to us using the contact information below.
             </p>
             
             <div className="bg-[#D0B079]/10 p-8 rounded-xl border border-[#D0B079]/20 shadow-inner space-y-6">

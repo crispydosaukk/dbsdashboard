@@ -137,7 +137,7 @@ export default function LoginPage() {
               <div className="flex justify-center mb-4 sm:mb-6">
                 <div className="bg-black p-3.5 sm:p-4 rounded-xl shadow-xl transition-all duration-300 group">
                   <img
-                    src="/watanstafflogo.png"
+                    src="/digitalbotsolutions.jpeg"
                     alt="logo"
                     className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   />
@@ -169,7 +169,7 @@ export default function LoginPage() {
                     name="email"
                     value={form.email}
                     onChange={onChange}
-                    placeholder="manager@watanstaff.com"
+                    placeholder="manager@digitalbotsolutions.com"
                     className="underline-input font-medium text-gray-800"
                   />
                   <span className="underline-focus-line after:bg-[#D0B079]"></span>

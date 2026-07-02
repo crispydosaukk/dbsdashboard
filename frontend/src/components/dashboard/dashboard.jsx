@@ -872,7 +872,7 @@ export default function Dashboard() {
             <table style="width: 100%; border-collapse:collapse;">
               <tr>
                 <td style="vertical-align: top;">
-                  <div style="color:#D0B079;font-size:24px;font-weight:900;">Watan Group</div>
+                  <div style="color:#D0B079;font-size:24px;font-weight:900;">DigitalBotSolutions</div>
                   <div style="color:#9ca3af;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-top:3px;">Restaurant Comparison Report</div>
                 </td>
                 <td style="vertical-align: top; text-align: right;">
@@ -903,7 +903,7 @@ export default function Dashboard() {
         </div>`;
       } else if (isComparative) {
         reportHtml = `<div style="font-family:Arial,sans-serif;color:#111827;max-width:800px;margin:0 auto;background:#fff;padding:40px;">
-          <h1 style="color:#1e3a5f;margin:0 0 5px 0;">Watan Group</h1>
+          <h1 style="color:#1e3a5f;margin:0 0 5px 0;">DigitalBotSolutions</h1>
           <p style="color:#6b7280;text-transform:uppercase;font-size:12px;margin:0 0 20px 0;letter-spacing:1px;">Period Snapshot Report</p>
           ${filterDetailsHtml}
                    <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
@@ -963,7 +963,7 @@ export default function Dashboard() {
             <table style="width: 100%; border-collapse:collapse;">
               <tr>
                 <td style="vertical-align: top;">
-                  <div style="color:#D0B079;font-size:24px;font-weight:900;">Watan Group</div>
+                  <div style="color:#D0B079;font-size:24px;font-weight:900;">DigitalBotSolutions</div>
                   <div style="color:#9ca3af;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-top:3px;">Period Snapshot Report</div>
                 </td>
                 <td style="vertical-align: top; text-align: right;">
@@ -1029,7 +1029,7 @@ export default function Dashboard() {
       const sendEmailReportFunc = httpsCallable(functionsInstance, "sendEmailReport");
       const emailHtmlBody = `<div style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;">
           <div style="background:#0b1a3d;padding:30px;border-radius:12px 12px 0 0;text-align:center;">
-            <h1 style="color:#D0B079;margin:0;font-size:24px;font-weight:800;">Watan Group</h1>
+            <h1 style="color:#D0B079;margin:0;font-size:24px;font-weight:800;">DigitalBotSolutions</h1>
             <p style="color:#9ca3af;margin:8px 0 0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Snapshot Report</p>
           </div>
           <div style="background:#f9fafb;padding:30px;border:1px solid #e5e7eb;">

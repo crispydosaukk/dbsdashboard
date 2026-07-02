@@ -9,7 +9,7 @@ export default function TermsConditions() {
         <div className="space-y-4 text-white/80 leading-relaxed">
           <p>Last updated: {new Date().toLocaleDateString()}</p>
           <p>
-            Welcome to the WatanStaff application (the "App"). These terms and conditions outline the rules and regulations for the use of our staff management and attendance monitoring platform.
+            Welcome to the DigitalBotSolutions application (the "App"). These terms and conditions outline the rules and regulations for the use of our staff management and attendance monitoring platform.
           </p>
           <p>
             By accessing or using the App, you accept these terms and conditions in full. Do not continue to use the App if you do not agree to all the terms and conditions stated on this page.
