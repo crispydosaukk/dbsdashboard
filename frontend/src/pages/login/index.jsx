@@ -137,7 +137,7 @@ export default function LoginPage() {
               <div className="flex justify-center mb-4 sm:mb-6">
                 <div className="bg-black p-3.5 sm:p-4 rounded-xl shadow-xl transition-all duration-300 group">
                   <img
-                    src="/digitalbotsolutions.jpeg"
+                    src="/digitalbotsolutions.png"
                     alt="logo"
                     className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   />

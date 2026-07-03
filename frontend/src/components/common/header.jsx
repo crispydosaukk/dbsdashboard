@@ -275,7 +275,7 @@ export default function Header({ onToggleSidebar, darkMode = true }) {
               <Menu size={22} />
             </button>
             <div className="hidden lg:flex items-center">
-              <img src="/digitalbotsolutions.jpeg" alt="DigitalBotSolutions" className="h-[48px] w-auto object-contain drop-shadow-lg" />
+              <img src="/digitalbotsolutions.png" alt="DigitalBotSolutions" className="h-[48px] w-auto object-contain drop-shadow-lg" />
             </div>
           </div>
 
