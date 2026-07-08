@@ -534,7 +534,7 @@ export default function Users() {
                   <label className="text-sm font-medium text-white/80 mb-2 block">Assign Role</label>
                   <GlassMultiSelect
                     loading={rolesLoading} options={roleOptions} selected={cRoleIds}
-                    onToggle={(id) => setCRoleIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                    onToggle={(id) => setCRoleIds([id])}
                     label="role"
                   />
                 </div>
@@ -632,7 +632,7 @@ export default function Users() {
                   <label className="text-sm font-medium text-white/80 mb-2 block">Assign Role</label>
                   <GlassMultiSelect
                     loading={rolesLoading} options={roleOptions} selected={eRoleIds}
-                    onToggle={(id) => setERoleIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])}
+                    onToggle={(id) => setERoleIds([id])}
                     label="role"
                   />
                 </div>

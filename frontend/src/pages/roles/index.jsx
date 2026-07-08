@@ -120,24 +120,29 @@ export default function Roles() {
     return () => unsubscribe();
   }, []);
 
-  // Sync Notifications and Settings permissions to DB
+  // Sync all side modules permissions to DB
   useEffect(() => {
-    if (!permLoading && permissions.length > 0) {
-      const hasNotif = permissions.find(p => p.id === "notifications" || p.title === "Notifications");
-      if (!hasNotif) {
-        addDoc(collection(db, "permissions"), {
-          title: "Notifications",
-          id: "notifications",
-          created_at: new Date()
-        }).catch(console.error);
-      }
-      const hasSettings = permissions.find(p => p.id === "settings" || p.title === "Settings");
-      if (!hasSettings) {
-        setDoc(doc(db, "permissions", "settings"), {
-          title: "Settings",
-          created_at: new Date()
-        }).catch(console.error);
-      }
+    if (!permLoading) {
+      const defaultModules = [
+        { id: "dashboard", title: "Dashboard" },
+        { id: "restaurant", title: "Restaurant Profile" },
+        { id: "all_staff", title: "All Staff" },
+        { id: "staff_management", title: "Staff Management" },
+        { id: "notifications", title: "Notifications" },
+        { id: "auto_logouts", title: "Auto Logouts" },
+        { id: "settings", title: "Settings" },
+        { id: "access", title: "Access Control" }
+      ];
+
+      defaultModules.forEach(mod => {
+        const exists = permissions.find(p => p.id === mod.id || p.title === mod.title);
+        if (!exists) {
+          setDoc(doc(db, "permissions", mod.id), {
+            title: mod.title,
+            created_at: new Date()
+          }).catch(console.error);
+        }
+      });
     }
   }, [permLoading, permissions]);
 

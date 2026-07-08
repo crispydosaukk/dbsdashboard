@@ -38,6 +38,32 @@ export default function AccessManagement() {
     return () => unsubscribe();
   }, []);
 
+  // Sync all side modules permissions to DB
+  useEffect(() => {
+    if (!loading) {
+      const defaultModules = [
+        { id: "dashboard", title: "Dashboard" },
+        { id: "restaurant", title: "Restaurant Profile" },
+        { id: "all_staff", title: "All Staff" },
+        { id: "staff_management", title: "Staff Management" },
+        { id: "notifications", title: "Notifications" },
+        { id: "auto_logouts", title: "Auto Logouts" },
+        { id: "settings", title: "Settings" },
+        { id: "access", title: "Access Control" }
+      ];
+
+      defaultModules.forEach(mod => {
+        const exists = permissions.find(p => p.id === mod.id || p.title === mod.title);
+        if (!exists) {
+          setDoc(doc(db, "permissions", mod.id), {
+            title: mod.title,
+            created_at: new Date()
+          }).catch(console.error);
+        }
+      });
+    }
+  }, [loading, permissions]);
+
   async function handleCreate() {
     if (!title.trim()) { setError("Title is required"); return; }
     try {
