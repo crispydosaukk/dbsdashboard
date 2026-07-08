@@ -69,6 +69,8 @@ export function getSafePath(passedUser, passedPerms) {
     { perm: "auto_logouts", path: "/autologouts" },
     { perm: "restaurant", path: "/restuarent" },
     { perm: "settings", path: "/settings" },
+    { perm: "biometric_kiosk", path: "/biometric-kiosk" },
+    { perm: "live_kiosk", path: "/live-kiosk" },
     { perm: "access", path: "/access" },
   ];
 

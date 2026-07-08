@@ -23,6 +23,8 @@ import NotificationsPage from "./pages/notifications/index.jsx";
 import PrivacyPolicy from "./pages/privacy-policy/index.jsx";
 import TermsConditions from "./pages/terms-conditions/index.jsx";
 import ContactSupport from "./pages/contact-support/index.jsx";
+import BiometricKiosk from "./pages/biometric-kiosk/index.jsx";
+import LiveKiosk from "./pages/live-kiosk/index.jsx";
 import { getSafePath } from "./utils/perm";
 import { useAuth } from "./context/AuthContext";
 function PrivateRoute({ children }) {
@@ -111,6 +113,22 @@ export default function App() {
           element={
             <PrivateRoute>
               <RequirePerm perm="auto_logouts"><AutoLogoutsPage /></RequirePerm>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/biometric-kiosk"
+          element={
+            <PrivateRoute>
+              <RequirePerm perm="biometric_kiosk"><BiometricKiosk /></RequirePerm>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/live-kiosk"
+          element={
+            <PrivateRoute>
+              <RequirePerm perm="live_kiosk"><LiveKiosk /></RequirePerm>
             </PrivateRoute>
           }
         />

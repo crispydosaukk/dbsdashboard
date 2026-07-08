@@ -131,7 +131,9 @@ export default function Roles() {
         { id: "notifications", title: "Notifications" },
         { id: "auto_logouts", title: "Auto Logouts" },
         { id: "settings", title: "Settings" },
-        { id: "access", title: "Access Control" }
+        { id: "access", title: "Access Control" },
+        { id: "biometric_kiosk", title: "Biometric Registration" },
+        { id: "live_kiosk", title: "Live Attendance Kiosk" }
       ];
 
       defaultModules.forEach(mod => {
