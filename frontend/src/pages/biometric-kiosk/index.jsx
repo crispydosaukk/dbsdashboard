@@ -131,12 +131,18 @@ export default function BiometricKiosk() {
       streamRef.current = null;
     }
     setIsCameraOn(false);
+    setScanning(false);
     setScanMessage("");
   };
 
   const registerFace = async () => {
     if (!videoRef.current || !selectedStaff) return;
     
+    if (videoRef.current.readyState < 2) {
+      showPopup({ title: "Wait", message: "Camera is still initializing...", type: "warning" });
+      return;
+    }
+
     setScanning(true);
     setScanMessage("Scanning face... please hold still.");
     
@@ -296,18 +302,18 @@ export default function BiometricKiosk() {
               ) : (
                 <div className="text-center w-full max-w-md">
                   <div className="aspect-square w-full rounded-3xl bg-black/50 border-2 border-dashed border-white/20 flex flex-col items-center justify-center mb-8 relative overflow-hidden group">
-                    {isCameraOn ? (
-                      <video 
-                        ref={videoRef} 
-                        autoPlay 
-                        muted 
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      muted 
+                      playsInline
+                      className={`absolute inset-0 w-full h-full object-cover ${isCameraOn ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                    
+                    {!isCameraOn && (
                       <>
-                        <ScanFace className="text-white/20 group-hover:text-[#00f2ff]/50 transition-colors duration-500" size={80} />
-                        <p className="mt-4 text-white/50 font-medium tracking-wide">Camera Offline</p>
+                        <ScanFace className="text-white/20 group-hover:text-[#00f2ff]/50 transition-colors duration-500 relative z-10" size={80} />
+                        <p className="mt-4 text-white/50 font-medium tracking-wide relative z-10">Camera Offline</p>
                       </>
                     )}
                     

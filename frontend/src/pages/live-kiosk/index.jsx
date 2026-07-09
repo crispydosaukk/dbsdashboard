@@ -132,7 +132,7 @@ export default function LiveKiosk() {
   };
 
   const scanLoop = async () => {
-    if (!scanningRef.current || !videoRef.current || cooldownRef.current || !faceMatcherRef.current) {
+    if (!scanningRef.current || !videoRef.current || videoRef.current.readyState < 2 || cooldownRef.current || !faceMatcherRef.current) {
       if (scanningRef.current) {
         setTimeout(scanLoop, 500); // Check again soon
       }
@@ -197,24 +197,32 @@ export default function LiveKiosk() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Find if they have an active session today
+      // Find if they have an active session today (Removed orderBy and limit to prevent Firebase Index requirement)
       const attQuery = query(
         collection(db, "attendance"),
         where("staff_id", "==", staffMember.id),
-        where("date", "==", today),
-        orderBy("clock_in", "desc"),
-        limit(1)
+        where("date", "==", today)
       );
       
       const attSnap = await getDocs(attQuery);
       let isClockingOut = false;
       let existingRecordId = null;
+      let existingClockInTime = null;
 
       if (!attSnap.empty) {
-        const record = attSnap.docs[0].data();
-        if (!record.clock_out) {
+        // Sort manually to find the most recent record
+        const records = attSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        records.sort((a, b) => {
+          const tA = a.clock_in?.toMillis ? a.clock_in.toMillis() : 0;
+          const tB = b.clock_in?.toMillis ? b.clock_in.toMillis() : 0;
+          return tB - tA; // Descending
+        });
+
+        const latestRecord = records[0];
+        if (!latestRecord.clock_out) {
           isClockingOut = true;
-          existingRecordId = attSnap.docs[0].id;
+          existingRecordId = latestRecord.id;
+          existingClockInTime = latestRecord.clock_in?.toDate ? latestRecord.clock_in.toDate() : new Date();
         }
       }
 
@@ -222,10 +230,14 @@ export default function LiveKiosk() {
       let actionType = "";
 
       if (isClockingOut) {
+        // Calculate total minutes worked
+        const totalMinutes = existingClockInTime ? Math.floor((now - existingClockInTime) / 60000) : 0;
+
         // Clock Out
         await updateDoc(doc(db, "attendance", existingRecordId), {
           clock_out: serverTimestamp(),
           location_out: "Face Kiosk",
+          total_minutes: totalMinutes > 0 ? totalMinutes : 0,
           updated_at: serverTimestamp()
         });
         actionType = "Clocked Out";
