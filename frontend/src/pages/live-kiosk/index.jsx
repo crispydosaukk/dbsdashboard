@@ -19,6 +19,12 @@ export default function LiveKiosk() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
   
+  // Geofence
+  const [geofenceStatus, setGeofenceStatus] = useState("checking");
+  const geofenceStatusRef = useRef("checking"); // ref for stale-closure-safe access
+  const [restaurantData, setRestaurantData] = useState(null);
+  const kioskLocationRef = useRef(null);
+
   // Refs for scan loop closure
   const faceMatcherRef = useRef(null);
   const staffDataRef = useRef([]);
@@ -35,6 +41,7 @@ export default function LiveKiosk() {
     const init = async () => {
       try {
         await loadModels();
+        await fetchRestaurantAndGeofence();
         await fetchStaffAndCreateMatcher();
         await startCamera();
       } catch (err) {
@@ -60,12 +67,87 @@ export default function LiveKiosk() {
     setModelsLoaded(true);
   };
 
+  const isSuperAdmin = 
+    userData?.role_id === 6 || 
+    userData?.role_id === "6" || 
+    String(userData?.role_title || "").toLowerCase().trim() === "super admin";
+
+  // Helper: sets both state (UI) and ref (used inside stale closures like scanLoop)
+  const setGeoStatus = (status) => {
+    geofenceStatusRef.current = status;
+    setGeofenceStatus(status);
+  };
+
+  // Haversine formula to calculate distance between two lat/lng points in meters
+  const getDistanceInMeters = (lat1, lng1, lat2, lng2) => {
+    const R = 6371000; // Earth radius in meters
+    const toRad = (v) => (v * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
+
+  const fetchRestaurantAndGeofence = async () => {
+    try {
+      const restId = isSuperAdmin ? null : user?.uid;
+      if (!restId) return; // Super admin bypass geofence for testing
+
+      // Fetch restaurant geofence config
+      const { getDoc } = await import("firebase/firestore");
+      const restDoc = await getDoc(doc(db, "restaurants", restId));
+      if (!restDoc.exists()) return;
+
+      const restData = restDoc.data();
+      setRestaurantData(restData);
+
+      const restLat = parseFloat(restData.latitude);
+      const restLng = parseFloat(restData.longitude);
+      const radiusM = parseFloat(restData.geofence_radius) || 50;
+
+      if (!restLat || !restLng) {
+        setGeoStatus("inside");
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        setGeoStatus("inside");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          kioskLocationRef.current = { lat: latitude, lng: longitude };
+          const distance = getDistanceInMeters(latitude, longitude, restLat, restLng);
+          console.log(`Kiosk distance: ${distance.toFixed(1)}m (allowed: ${radiusM}m)`);
+          setGeoStatus(distance <= radiusM ? "inside" : "outside");
+        },
+        (err) => {
+          console.warn("Geolocation unavailable:", err.message, "— allowing attendance without geofence.");
+          setGeoStatus("inside");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } catch (err) {
+      console.error("Geofence fetch error:", err);
+      setGeoStatus("inside"); // Don't block if fetch fails
+    }
+  };
+
   const fetchStaffAndCreateMatcher = async () => {
     try {
-      const restId = user?.uid || "";
-      if (!restId) return;
+      let staffQuery;
+      
+      if (isSuperAdmin) {
+        // Super admins fetch all staff across all restaurants to test
+        staffQuery = query(collection(db, "staff"));
+      } else {
+        const restId = user?.uid || "";
+        if (!restId) return;
+        staffQuery = query(collection(db, "staff"), where("created_by", "==", restId));
+      }
 
-      const staffQuery = query(collection(db, "staff"), where("created_by", "==", restId));
       const staffSnap = await getDocs(staffQuery);
       
       const staffList = [];
@@ -84,8 +166,9 @@ export default function LiveKiosk() {
       staffDataRef.current = staffList;
 
       if (labeledDescriptors.length > 0) {
-        // Create face matcher with 0.45 distance threshold (lower is stricter)
-        const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
+        // Create face matcher with 0.60 distance threshold (standard default for face-api)
+        // This is more forgiving for different lighting conditions and angles
+        const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.60);
         faceMatcherRef.current = matcher;
       } else {
         setMessage("No staff members have registered faces yet.");
@@ -188,6 +271,25 @@ export default function LiveKiosk() {
   };
 
   const handleAttendanceAction = async (staffMember) => {
+    // Use ref for geofenceStatus to avoid stale closure issue
+    const currentGeoStatus = geofenceStatusRef.current;
+
+    if (!isSuperAdmin && currentGeoStatus !== "inside") {
+      setScanStatus("error");
+      if (currentGeoStatus === "outside") {
+        setMessage("Outside restaurant area. Clock-in not allowed.");
+      } else {
+        setMessage("Verifying location, please wait...");
+      }
+      cooldownRef.current = true;
+      setTimeout(() => {
+        setScanStatus("ready");
+        setMessage("Ready. Please look at the camera.");
+        cooldownRef.current = false;
+      }, 3000);
+      return;
+    }
+
     // Put system in cooldown so it doesn't repeatedly scan the same person
     cooldownRef.current = true;
     setScanStatus("scanning");
@@ -242,12 +344,12 @@ export default function LiveKiosk() {
         });
         actionType = "Clocked Out";
       } else {
-        // Clock In
+        // Clock In — use staffMember.created_by as restaurant_id (not logged-in user)
         await addDoc(collection(db, "attendance"), {
           staff_id: staffMember.id,
           staff_name: staffMember.full_name,
           designation: staffMember.designation || "Staff",
-          restaurant_id: user?.uid,
+          restaurant_id: staffMember.created_by || user?.uid,
           restaurant_name: staffMember.restaurant_name || "",
           date: today,
           clock_in: serverTimestamp(),
@@ -294,12 +396,15 @@ export default function LiveKiosk() {
             <p className="text-white/60 text-sm font-medium">{userData?.name || "Restaurant"}</p>
           </div>
         </div>
-        <button 
-          onClick={() => navigate('/dashboard')}
-          className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors backdrop-blur-md"
-        >
-          <X size={24} />
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors backdrop-blur-md"
+          >
+            <X size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Main Kiosk Area */}
@@ -345,7 +450,19 @@ export default function LiveKiosk() {
               {message}
             </p>
           </div>
-        </div>
+
+          {/* Geofence text below status */}
+          {!isSuperAdmin && geofenceStatus !== 'inside' && (
+            <p className={`mt-4 text-sm font-semibold tracking-wide
+              ${geofenceStatus === 'outside' ? 'text-red-400' : ''}
+              ${geofenceStatus === 'checking' ? 'text-white/50' : ''}
+              ${geofenceStatus === 'error' ? 'text-yellow-400' : ''}
+            `}>
+              {geofenceStatus === 'outside' && '⚠ You are outside the restaurant area. Attendance cannot be recorded.'}
+              {geofenceStatus === 'checking' && 'Verifying your location...'}
+              {geofenceStatus === 'error' && '⚠ Location access denied. Please allow location to record attendance.'}
+            </p>
+          )}
 
         {/* Success Overlay */}
         <AnimatePresence>
@@ -366,7 +483,9 @@ export default function LiveKiosk() {
           )}
         </AnimatePresence>
 
-      </div>
+      </div>{/* End overlay z-10 */}
+
+      </div>{/* End main kiosk area */}
 
       <style>{`
         @keyframes scan {

@@ -5,8 +5,8 @@ import Footer from "../../components/common/footer.jsx";
 import { db } from "../../lib/firebase";
 import { collection, query, where, getDocs, orderBy, doc, updateDoc } from "firebase/firestore";
 import * as faceapi from "face-api.js";
-import { motion } from "framer-motion";
-import { ScanFace, Building2, UserCircle, Camera, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ScanFace, Building2, UserCircle, Camera, CheckCircle, AlertCircle, Trash2 } from "lucide-react";
 import { usePopup } from "../../context/PopupContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -30,6 +30,7 @@ export default function BiometricKiosk() {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState("");
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, staffId: null });
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -159,15 +160,21 @@ export default function BiometricKiosk() {
       // Convert descriptor to regular array for Firestore
       const descriptorArray = Array.from(detection.descriptor);
 
-      // Save to Firebase
+      // Save to Firebase — also set face_attendance_only flag to block app clock-in
       const staffDocRef = doc(db, "staff", selectedStaff);
       await updateDoc(staffDocRef, {
         faceDescriptor: descriptorArray,
+        face_attendance_only: true,
         updated_at: new Date()
       });
 
       setScanMessage("Face registered successfully!");
       showPopup({ title: "Success", message: "Face biometric data saved.", type: "success" });
+
+      // Update local state so the history shows "Registered" immediately
+      setStaffList(prev => prev.map(s =>
+        s.id === selectedStaff ? { ...s, faceDescriptor: descriptorArray } : s
+      ));
       
       // Stop camera after success
       setTimeout(() => stopVideo(), 2000);
@@ -178,6 +185,34 @@ export default function BiometricKiosk() {
     } finally {
       setScanning(false);
     }
+  };
+
+  const confirmDeleteFace = async () => {
+    if (!deleteModal.staffId) return;
+    const staffId = deleteModal.staffId;
+    
+    setDeleteModal({ isOpen: false, staffId: null });
+    setLoading(true);
+
+    try {
+      await updateDoc(doc(db, "staff", staffId), {
+        faceDescriptor: [],
+        face_attendance_only: false
+      });
+      
+      // Update local list
+      setStaffList(prev => prev.map(s => s.id === staffId ? { ...s, faceDescriptor: [], face_attendance_only: false } : s));
+      showPopup({ title: "Deleted", message: "Face data removed successfully.", type: "success" });
+    } catch (err) {
+      console.error(err);
+      showPopup({ title: "Error", message: "Failed to delete face data.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFace = (staffId) => {
+    setDeleteModal({ isOpen: true, staffId });
   };
 
   const handleRestaurantChange = (e) => {
@@ -362,9 +397,120 @@ export default function BiometricKiosk() {
             </motion.div>
           </div>
 
+          {/* Registration History / Management - Full Width Below */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 bg-[#0b1a3d]/60 backdrop-blur-xl border border-white/[0.08] rounded-[2rem] p-6 md:p-10 shadow-2xl max-w-6xl mx-auto"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-2">Registered Faces History</h3>
+                <p className="text-white/50">Manage the biometric data for all staff members at this location.</p>
+              </div>
+              {selectedRestaurant && (
+                <div className="bg-white/10 px-5 py-2 rounded-full border border-white/10 text-white font-bold">
+                  {staffList.filter(s => s.faceDescriptor && s.faceDescriptor.length > 0).length} / {staffList.length} Registered
+                </div>
+              )}
+            </div>
+
+            {!selectedRestaurant ? (
+              <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+                <Building2 className="text-white/20 mb-4" size={48} />
+                <p className="text-white/50 text-lg font-medium">Please select a restaurant above to view the staff history.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(() => {
+                  const registeredStaff = staffList.filter(s => s.faceDescriptor && s.faceDescriptor.length > 0);
+                  
+                  if (registeredStaff.length === 0) {
+                    return (
+                      <div className="col-span-full py-10 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.02] flex flex-col items-center justify-center">
+                        <UserCircle className="text-white/20 mb-4" size={48} />
+                        <p className="text-white/50 text-lg font-medium">No faces have been registered yet.</p>
+                      </div>
+                    );
+                  }
+
+                  return registeredStaff.map(s => (
+                    <div key={s.id} className="bg-white/[0.03] border border-white/[0.05] p-5 rounded-2xl flex items-center justify-between hover:bg-white/[0.05] transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-500/20 text-green-400">
+                          <UserCircle size={24} />
+                        </div>
+                        <div>
+                          <p className="text-white font-bold">{s.full_name}</p>
+                          <p className="text-white/50 text-sm">{s.designation || "Staff"}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-green-400 bg-green-400/10 px-3 py-1.5 rounded-full flex items-center gap-1 font-bold">
+                          <CheckCircle size={14} /> Yes
+                        </span>
+                        <button 
+                          onClick={() => handleDeleteFace(s.id)}
+                          className="p-2 text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-colors ml-2"
+                          title="Delete Face Data"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+          </motion.div>
+
         </main>
         <Footer />
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModal.isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#0b1a3d] border border-white/10 p-8 rounded-3xl shadow-2xl max-w-md w-full"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
+                  <Trash2 className="text-red-400" size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Delete Face Data?</h3>
+                <p className="text-white/60 mb-8">
+                  Are you sure you want to permanently delete this staff member's biometric data? They will no longer be able to use the Face Kiosk.
+                </p>
+                <div className="flex gap-4 w-full">
+                  <button 
+                    onClick={() => setDeleteModal({ isOpen: false, staffId: null })}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-white/10 hover:bg-white/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={confirmDeleteFace}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-lg shadow-red-500/30"
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <style>{`
         @keyframes scan {
