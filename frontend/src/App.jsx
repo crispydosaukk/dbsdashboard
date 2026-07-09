@@ -25,6 +25,8 @@ import TermsConditions from "./pages/terms-conditions/index.jsx";
 import ContactSupport from "./pages/contact-support/index.jsx";
 import BiometricKiosk from "./pages/biometric-kiosk/index.jsx";
 import LiveKiosk from "./pages/live-kiosk/index.jsx";
+import KioskHub from "./pages/kiosk-hub/index.jsx";
+import KioskDevices from "./pages/access/kiosk-devices/index.jsx";
 import { getSafePath } from "./utils/perm";
 import { useAuth } from "./context/AuthContext";
 function PrivateRoute({ children }) {
@@ -133,6 +135,14 @@ export default function App() {
           }
         />
         <Route
+          path="/kiosk-hub"
+          element={
+            <PrivateRoute>
+              <KioskHub />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/access/roles"
           element={
             <PrivateRoute>
@@ -145,6 +155,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <RequirePerm perm="access"><Users /></RequirePerm>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/access/kiosk-devices"
+          element={
+            <PrivateRoute>
+              <RequirePerm perm="access"><KioskDevices /></RequirePerm>
             </PrivateRoute>
           }
         />

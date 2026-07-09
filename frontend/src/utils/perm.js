@@ -33,6 +33,11 @@ export function can(required, passedUser, passedPerms) {
     (user?.role?.title && String(user.role.title).toLowerCase().trim() === "super admin")
   );
 
+  const isKiosk = user?.role_id === "KIOSK";
+  if (isKiosk && ["biometric_kiosk", "live_kiosk", "kiosk_hub"].includes(String(required).toLowerCase())) {
+    return true;
+  }
+
   const hasPerm = perms.includes(String(required).toLowerCase());
   return isSuper || hasPerm;
 }
@@ -57,6 +62,10 @@ export function getSafePath(passedUser, passedPerms) {
 
   if (isSuper) {
     return "/dashboard";
+  }
+
+  if (user?.role_id === "KIOSK") {
+    return "/kiosk-hub";
   }
 
   const perms = (passedPerms || getPerms() || []).map(p => String(p).toLowerCase());

@@ -74,9 +74,10 @@ export default function BiometricKiosk() {
         
         // If super admin hasn't selected a restaurant, we don't load staff yet
       } else {
-        // Normal manager - auto select their restaurant
-        setSelectedRestaurant(user?.uid || "");
-        fetchStaffForRestaurant(user?.uid || "");
+        // Normal manager or Kiosk device - auto select their restaurant
+        const restId = userData?.role_id === "KIOSK" ? userData?.restaurant_id : user?.uid;
+        setSelectedRestaurant(restId || "");
+        fetchStaffForRestaurant(restId || "");
       }
     } catch (error) {
       console.error("Error fetching data:", error);

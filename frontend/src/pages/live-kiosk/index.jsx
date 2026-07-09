@@ -90,7 +90,13 @@ export default function LiveKiosk() {
 
   const fetchRestaurantAndGeofence = async () => {
     try {
-      const restId = isSuperAdmin ? null : user?.uid;
+      const isSuperAdmin = userData?.role_id === 6 || userData?.role_id === "6" || String(userData?.role_title || "").toLowerCase().trim() === "super admin";
+      let restId = user?.uid;
+      if (userData?.role_id === "KIOSK") {
+        restId = userData?.restaurant_id;
+      }
+      if (isSuperAdmin) restId = null;
+
       if (!restId) return; // Super admin bypass geofence for testing
 
       // Fetch restaurant geofence config
@@ -143,7 +149,7 @@ export default function LiveKiosk() {
         // Super admins fetch all staff across all restaurants to test
         staffQuery = query(collection(db, "staff"));
       } else {
-        const restId = user?.uid || "";
+        const restId = userData?.role_id === "KIOSK" ? userData?.restaurant_id : user?.uid;
         if (!restId) return;
         staffQuery = query(collection(db, "staff"), where("created_by", "==", restId));
       }

@@ -109,11 +109,12 @@ export default function Sidebar({ open, onClose }) {
     []
   );
 
-  const rawAccessChildren = useMemo(
+    const rawAccessChildren = useMemo(
     () => [
       { label: "Permissions", to: "/access", icon: iconLock(), perm: "access" },
       { label: "Roles", to: "/access/roles", icon: iconUsersCog(), perm: "access" },
       { label: "Users", to: "/access/users", icon: iconUser(), perm: "access" },
+      { label: "Kiosk Devices", to: "/access/kiosk-devices", icon: iconMonitorSmartphone(), perm: "access" },
     ],
     []
   );
@@ -375,6 +376,17 @@ function iconLiveKiosk() {
       <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
       <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function iconMonitorSmartphone() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+      <path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 19v-3.96 3.15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 19h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="16" y="12" width="6" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
