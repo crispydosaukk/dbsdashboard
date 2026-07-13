@@ -59,9 +59,9 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-[#D0B079]/10 p-6 rounded-xl mt-4 border border-[#D0B079]/20 shadow-inner">
               <p className="font-bold text-white mb-2">Catering Spice Ltd</p>
-              <p>Email: <a href="mailto:cateringspiceltd@gmail.com" className="text-[#D0B079] hover:underline">cateringspiceltd@gmail.com</a></p>
-              <p>Phone: <a href="tel:+447368374770" className="text-[#D0B079] hover:underline">+447368 374770</a></p>
-              <p>Address: Brook Industrial Estate, Bullsbrook Rd, Hayes UB4 0JZ, UK</p>
+              <p>Email: <a href="mailto:digitalbotsolutions@gmail.com" className="text-[#D0B079] hover:underline">digitalbotsolutions@gmail.com</a></p>
+              <p>Phone: <a href="tel:07448055754" className="text-[#D0B079] hover:underline">07448055754</a></p>
+              <p>Address: 35 Saints Drive, London, E7 0RF</p>
             </div>
           </div>
         </div>

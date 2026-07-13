@@ -54,9 +54,9 @@ export default function TermsConditions() {
           </p>
           <div className="bg-white/5 p-4 rounded mt-4 border border-white/10">
             <p><strong>Catering Spice Ltd</strong></p>
-            <p>Email: cateringspiceltd@gmail.com</p>
-            <p>Phone: +447368 374770</p>
-            <p>Address: Brook Industrial Estate, Bullsbrook Rd, Hayes UB4 0JZ, UK</p>
+            <p>Email: digitalbotsolutions@gmail.com</p>
+            <p>Phone: 07448055754</p>
+            <p>Address: 35 Saints Drive, London, E7 0RF</p>
           </div>
         </div>
       </div>

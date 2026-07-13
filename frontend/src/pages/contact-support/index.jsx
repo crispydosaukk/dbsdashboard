@@ -25,17 +25,17 @@ export default function ContactSupport() {
                 
                 <div>
                   <p className="text-sm font-bold text-white/50 uppercase tracking-widest mb-1">Email Address</p>
-                  <a href="mailto:cateringspiceltd@gmail.com" className="text-lg text-[#D0B079] hover:underline">cateringspiceltd@gmail.com</a>
+                  <a href="mailto:digitalbotsolutions@gmail.com" className="text-lg text-[#D0B079] hover:underline">digitalbotsolutions@gmail.com</a>
                 </div>
                 
                 <div>
                   <p className="text-sm font-bold text-white/50 uppercase tracking-widest mb-1">Phone Number</p>
-                  <a href="tel:+447368374770" className="text-lg text-[#D0B079] hover:underline">+447368 374770</a>
+                  <a href="tel:07448055754" className="text-lg text-[#D0B079] hover:underline">07448055754</a>
                 </div>
                 
                 <div>
                   <p className="text-sm font-bold text-white/50 uppercase tracking-widest mb-1">Physical Address</p>
-                  <p className="text-lg text-white">Brook Industrial Estate, Bullsbrook Rd, Hayes UB4 0JZ, UK</p>
+                  <p className="text-lg text-white">35 Saints Drive, London, E7 0RF</p>
                 </div>
               </div>
             </div>
