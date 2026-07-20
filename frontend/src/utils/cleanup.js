@@ -18,7 +18,6 @@ import { sendPushNotification } from "./fcm";
 export const performAttendanceCleanup = async () => {
   console.log("[Cleanup] Starting attendance cleanup...");
   const now = new Date();
-  const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
   
   const attendanceRef = collection(db, "attendance");
   const q = query(
@@ -34,35 +33,39 @@ export const performAttendanceCleanup = async () => {
       return;
     }
  
-    // Filter by time in memory to avoid needing a composite index
-    const oldRecords = snapshot.docs.filter(docSnap => {
-      const data = docSnap.data();
-      return data.clock_in && data.clock_in.toDate() < twentyFourHoursAgo;
-    });
- 
-    if (oldRecords.length === 0) {
-      console.log("[Cleanup] No old attendance records requiring auto clock-out.");
-      return;
-    }
+    const restSnap = await getDocs(collection(db, "restaurants"));
+    const restaurants = restSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const staffSnap = await getDocs(collection(db, "staff"));
+    const staffList = staffSnap.docs.map(d => ({ id: d.id, ...d.data() }));
  
     const batch = writeBatch(db);
     const notificationsRef = collection(db, "notifications");
+    let count = 0;
  
-    oldRecords.forEach((docSnap) => {
+    snapshot.docs.forEach((docSnap) => {
       const data = docSnap.data();
+      if (!data.clock_in) return;
+
       const staffId = data.staff_id;
       const staffName = data.staff_name || "Unknown Staff";
       
-      // 1. Auto Clock-out: Set to exactly 24 hours after they started
+      const staffInfo = staffList.find(s => s.id === staffId) || {};
+      const rId = data.restaurant_id || staffInfo.restaurant_id;
+      const rDoc = restaurants.find(r => r.id === String(rId));
+      const thresholdHours = rDoc?.auto_logout_hours !== undefined ? parseFloat(rDoc.auto_logout_hours) : 15;
+
       const clockInDate = data.clock_in.toDate();
-      const forcedClockOutDate = new Date(clockInDate.getTime() + (24 * 60 * 60 * 1000));
+      const forcedClockOutDate = new Date(clockInDate.getTime() + (thresholdHours * 60 * 60 * 1000));
       
-      batch.update(docSnap.ref, {
-        clock_out: Timestamp.fromDate(forcedClockOutDate),
-        total_minutes: 1440, // Exactly 24 hours
-        auto_clocked_out: true,
-        notes: "System: Auto clock-out (Forgot to logout). Recorded 24h limit reached."
-      });
+      if (now > forcedClockOutDate) {
+        count++;
+        batch.update(docSnap.ref, {
+          clock_out: Timestamp.fromDate(forcedClockOutDate),
+          total_minutes: Math.round(thresholdHours * 60),
+          auto_clocked_out: true,
+          location_out: "System Auto-Logout",
+          notes: `System: Auto clock-out (Forgot to logout). Recorded ${thresholdHours}h limit reached.`
+        });
 
       // 2. Notify Staff Member
       const staffNotifRef = doc(notificationsRef);
@@ -103,10 +106,16 @@ export const performAttendanceCleanup = async () => {
         status: "pending",
         sent_at: serverTimestamp()
       });
+      }
     });
 
+    if (count === 0) {
+      console.log("[Cleanup] No old attendance records requiring auto clock-out.");
+      return;
+    }
+
     await batch.commit();
-    console.log(`[Cleanup] Successfully auto-closed ${snapshot.size} attendance records.`);
+    console.log(`[Cleanup] Successfully auto-clocked out ${count} records.`);
   } catch (error) {
     console.error("[Cleanup] Error during attendance cleanup:", error);
   }
