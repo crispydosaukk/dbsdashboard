@@ -24,6 +24,8 @@ export default function Settings() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [radius, setRadius] = useState("50");
   const [autoLogoutHours, setAutoLogoutHours] = useState("15");
+  const [isGeofenceEnabled, setIsGeofenceEnabled] = useState(true);
+  const [isAutoLogoutEnabled, setIsAutoLogoutEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -123,9 +125,13 @@ export default function Settings() {
           const data = restDoc.data();
           setRadius(data.geofence_radius !== undefined ? data.geofence_radius.toString() : "50");
           setAutoLogoutHours(data.auto_logout_hours !== undefined ? data.auto_logout_hours.toString() : "15");
+          setIsGeofenceEnabled(data.is_geofence_enabled !== undefined ? data.is_geofence_enabled : true);
+          setIsAutoLogoutEnabled(data.is_auto_logout_enabled !== undefined ? data.is_auto_logout_enabled : true);
         } else {
           setRadius("50");
           setAutoLogoutHours("15");
+          setIsGeofenceEnabled(true);
+          setIsAutoLogoutEnabled(true);
         }
       } catch (err) {
         console.error("Error fetching restaurant settings:", err);
@@ -170,6 +176,8 @@ export default function Settings() {
           updateDoc(doc(db, "restaurants", r.id), {
             geofence_radius: numericRadius,
             auto_logout_hours: numericHours,
+            is_geofence_enabled: isGeofenceEnabled,
+            is_auto_logout_enabled: isAutoLogoutEnabled,
             updated_at: new Date()
           })
         );
@@ -193,6 +201,8 @@ export default function Settings() {
         await updateDoc(doc(db, "restaurants", selectedRestaurant), {
           geofence_radius: numericRadius,
           auto_logout_hours: numericHours,
+          is_geofence_enabled: isGeofenceEnabled,
+          is_auto_logout_enabled: isAutoLogoutEnabled,
           updated_at: new Date()
         });
 
@@ -439,72 +449,114 @@ export default function Settings() {
                     )}
 
                     <div className="space-y-8">
-                      {/* Geofence Radius Row */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-semibold tracking-wide text-white ml-1">
-                            Geofence Radius (meters)
-                          </label>
-                          <div className="relative group">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#D0B079] transition-colors" size={18} />
-                            <input
-                              type="number"
-                              name="geofence_radius"
-                              value={radius}
-                              onChange={(e) => setRadius(e.target.value)}
-                              placeholder="50"
-                              min="10"
-                              max="5000"
-                              required
-                              className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/[0.08] rounded-2xl text-white font-bold placeholder-white/10 focus:outline-none focus:ring-4 focus:ring-[#D0B079]/20 focus:border-[#D0B079]/40 transition-all hover:bg-white/10 shadow-inner"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 flex gap-3 text-xs text-white/60">
-                          <HelpCircle className="text-[#D0B079] shrink-0" size={18} />
+                      {/* Geofence Feature */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-bold text-white mb-1">Geofence Radius</p>
-                            <p className="leading-relaxed">
-                              {applyToAll 
-                                ? "This geofencing range will be enforced across all restaurants."
-                                : "Staff must be within this distance from the store coordinates to clock in or out."}
-                            </p>
+                            <h4 className="text-base font-bold text-white">Geofencing Restriction</h4>
+                            <p className="text-xs text-white/50 mt-0.5">Control whether staff must be within a certain distance to clock in.</p>
+                          </div>
+                          <label className="flex items-center gap-3 cursor-pointer group/toggle shrink-0">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={isGeofenceEnabled}
+                                onChange={(e) => setIsGeofenceEnabled(e.target.checked)}
+                              />
+                              <div className={`w-12 h-6 rounded-full transition-colors ${isGeofenceEnabled ? 'bg-emerald-500' : 'bg-white/10'}`}></div>
+                              <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all ${isGeofenceEnabled ? 'translate-x-6' : ''}`}></div>
+                            </div>
+                          </label>
+                        </div>
+                        
+                        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 items-center transition-all duration-300 ${!isGeofenceEnabled ? 'opacity-40 pointer-events-none' : ''}`}>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold tracking-wide text-white ml-1">
+                              Geofence Radius (meters)
+                            </label>
+                            <div className="relative group">
+                              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#D0B079] transition-colors" size={18} />
+                              <input
+                                type="number"
+                                name="geofence_radius"
+                                value={radius}
+                                onChange={(e) => setRadius(e.target.value)}
+                                placeholder="50"
+                                min="10"
+                                max="5000"
+                                required={isGeofenceEnabled}
+                                className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/[0.08] rounded-2xl text-white font-bold placeholder-white/10 focus:outline-none focus:ring-4 focus:ring-[#D0B079]/20 focus:border-[#D0B079]/40 transition-all hover:bg-white/10 shadow-inner"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 flex gap-3 text-xs text-white/60">
+                            <HelpCircle className="text-[#D0B079] shrink-0" size={18} />
+                            <div>
+                              <p className="font-bold text-white mb-1">Geofence Radius</p>
+                              <p className="leading-relaxed">
+                                {applyToAll 
+                                  ? "This geofencing range will be enforced across all restaurants."
+                                  : "Staff must be within this distance from the store coordinates to clock in or out."}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Auto Logout Row */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center border-t border-white/5 pt-6">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-semibold tracking-wide text-white ml-1">
-                            Auto Logout Threshold (hours)
-                          </label>
-                          <div className="relative group">
-                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#D0B079] transition-colors" size={18} />
-                            <input
-                              type="number"
-                              name="auto_logout_hours"
-                              value={autoLogoutHours}
-                              onChange={(e) => setAutoLogoutHours(e.target.value)}
-                              placeholder="15"
-                              min="1"
-                              max="48"
-                              step="0.5"
-                              required
-                              className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/[0.08] rounded-2xl text-white font-bold placeholder-white/10 focus:outline-none focus:ring-4 focus:ring-[#D0B079]/20 focus:border-[#D0B079]/40 transition-all hover:bg-white/10 shadow-inner"
-                            />
+                      {/* Auto Logout Feature */}
+                      <div className="space-y-6 border-t border-white/5 pt-8">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-base font-bold text-white">Auto Logout Threshold</h4>
+                            <p className="text-xs text-white/50 mt-0.5">Control whether staff are automatically clocked out after a certain time.</p>
                           </div>
+                          <label className="flex items-center gap-3 cursor-pointer group/toggle shrink-0">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={isAutoLogoutEnabled}
+                                onChange={(e) => setIsAutoLogoutEnabled(e.target.checked)}
+                              />
+                              <div className={`w-12 h-6 rounded-full transition-colors ${isAutoLogoutEnabled ? 'bg-emerald-500' : 'bg-white/10'}`}></div>
+                              <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all ${isAutoLogoutEnabled ? 'translate-x-6' : ''}`}></div>
+                            </div>
+                          </label>
                         </div>
 
-                        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 flex gap-3 text-xs text-white/60">
-                          <HelpCircle className="text-[#D0B079] shrink-0" size={18} />
-                          <div>
-                            <p className="font-bold text-white mb-1">Shift Duration Constraint</p>
-                            <p className="leading-relaxed">
-                              Staff will be automatically clocked out after working this many hours. 
-                              Default is <strong className="text-white">15 hours</strong>. Can be customized with decimal hours (e.g. 12.5).
-                            </p>
+                        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 items-center transition-all duration-300 ${!isAutoLogoutEnabled ? 'opacity-40 pointer-events-none' : ''}`}>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold tracking-wide text-white ml-1">
+                              Auto Logout Threshold (hours)
+                            </label>
+                            <div className="relative group">
+                              <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#D0B079] transition-colors" size={18} />
+                              <input
+                                type="number"
+                                name="auto_logout_hours"
+                                value={autoLogoutHours}
+                                onChange={(e) => setAutoLogoutHours(e.target.value)}
+                                placeholder="15"
+                                min="1"
+                                max="48"
+                                step="0.5"
+                                required={isAutoLogoutEnabled}
+                                className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/[0.08] rounded-2xl text-white font-bold placeholder-white/10 focus:outline-none focus:ring-4 focus:ring-[#D0B079]/20 focus:border-[#D0B079]/40 transition-all hover:bg-white/10 shadow-inner"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 flex gap-3 text-xs text-white/60">
+                            <HelpCircle className="text-[#D0B079] shrink-0" size={18} />
+                            <div>
+                              <p className="font-bold text-white mb-1">Shift Duration Constraint</p>
+                              <p className="leading-relaxed">
+                                Staff will be automatically clocked out after working this many hours. 
+                                Default is <strong className="text-white">15 hours</strong>. Can be customized with decimal hours (e.g. 12.5).
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>

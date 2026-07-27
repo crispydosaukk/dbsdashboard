@@ -52,12 +52,13 @@ export const performAttendanceCleanup = async () => {
       const staffInfo = staffList.find(s => s.id === staffId) || {};
       const rId = data.restaurant_id || staffInfo.restaurant_id;
       const rDoc = restaurants.find(r => r.id === String(rId));
+      const autoLogoutEnabled = rDoc?.is_auto_logout_enabled !== undefined ? rDoc.is_auto_logout_enabled : true;
       const thresholdHours = rDoc?.auto_logout_hours !== undefined ? parseFloat(rDoc.auto_logout_hours) : 15;
 
       const clockInDate = data.clock_in.toDate();
       const forcedClockOutDate = new Date(clockInDate.getTime() + (thresholdHours * 60 * 60 * 1000));
       
-      if (now > forcedClockOutDate) {
+      if (autoLogoutEnabled && now > forcedClockOutDate) {
         count++;
         batch.update(docSnap.ref, {
           clock_out: Timestamp.fromDate(forcedClockOutDate),
