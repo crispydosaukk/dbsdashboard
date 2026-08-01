@@ -158,3 +158,56 @@ exports.sendEmailReport = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("internal", error.message);
   }
 });
+
+/**
+ * Scheduled function to detect dead phones (missing heartbeats) and auto-logout users.
+ * Runs every 1 minutes.
+ */
+exports.autoLogoutInactiveSessions = functions.pubsub.schedule("every 1 minutes").onRun(async (context) => {
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 40 * 1000); // 40 seconds ago
+
+  try {
+    const snapshot = await admin.firestore().collection("attendance")
+      .where("clock_out", "==", null)
+      .get();
+
+    const batch = admin.firestore().batch();
+    let processed = 0;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      let lastActiveDate = null;
+      
+      if (data.last_active) {
+        lastActiveDate = data.last_active.toDate();
+      } else if (data.clock_in) {
+        lastActiveDate = data.clock_in.toDate();
+      }
+
+      // If they haven't sent a heartbeat in over 10 minutes
+      if (lastActiveDate && lastActiveDate < cutoff) {
+        const cinDate = data.clock_in.toDate();
+        const diffMin = Math.max(1, Math.round((lastActiveDate.getTime() - cinDate.getTime()) / 60000));
+        const safeDiffMin = Math.min(diffMin, 1440);
+
+        batch.update(doc.ref, {
+          clock_out: lastActiveDate, // Retroactively clock out at last known online time
+          total_minutes: Math.max(0, safeDiffMin),
+          location_out: "System Auto-Logout"
+        });
+        processed++;
+      }
+    });
+
+    if (processed > 0) {
+      await batch.commit();
+      console.log(`Auto-logged out ${processed} inactive sessions.`);
+    } else {
+      console.log("No inactive sessions found.");
+    }
+  } catch (error) {
+    console.error("Error in autoLogoutInactiveSessions:", error);
+  }
+  return null;
+});

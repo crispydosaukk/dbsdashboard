@@ -24,10 +24,6 @@ import { sendPushNotification } from "../../utils/fcm";
 
 
 // --- Helpers ---
-const getAutoLogoutTime = (clockIn, thresholdHours = 15) => {
-  const d = new Date(clockIn);
-  return new Date(d.getTime() + (thresholdHours * 60 * 60 * 1000));
-};
 
 const getTrend = (current, previous) => {
   if (previous === 0) return current > 0 ? { text: "+100%", isUp: true } : { text: "0%", isUp: false };
@@ -401,38 +397,7 @@ export default function Dashboard() {
     const activeSnap = await getDocs(activeQuery);
     let activeAllRecords = activeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Auto-logout expired sessions
-    const now = new Date();
-    const expiredSessions = [];
-
-    activeAllRecords = activeAllRecords.filter(r => {
-      if (!r.clock_in) return true; // safety check
-      
-      const staffInfo = allStaffList.find(s => s.id === r.staff_id) || {};
-      const rId = r.restaurant_id || staffInfo.restaurant_id;
-      const rDoc = restaurants.find(rest => rest.id === String(rId));
-      const thresholdHours = rDoc?.auto_logout_hours !== undefined ? parseFloat(rDoc.auto_logout_hours) : 15;
-
-      const cinDate = r.clock_in?.toDate ? r.clock_in.toDate() : new Date(r.clock_in);
-      const autoLogout = getAutoLogoutTime(cinDate, thresholdHours);
-      if (now >= autoLogout) {
-        expiredSessions.push({ ...r, autoLogout, cinDate });
-        return false;
-      }
-      return true;
-    });
-
-    if (expiredSessions.length > 0) {
-      Promise.all(expiredSessions.map(session => {
-        const diffMin = Math.max(1, Math.round((session.autoLogout.getTime() - session.cinDate.getTime()) / 60000));
-        const safeDiffMin = Math.min(diffMin, 1440);
-        return updateDoc(doc(db, "attendance", session.id), {
-          clock_out: session.autoLogout,
-          total_minutes: Math.max(0, safeDiffMin),
-          location_out: "System Auto-Logout"
-        }).catch(err => console.error("Dashboard auto logout error:", err));
-      }));
-    }
+    // Auto-logout expired sessions logic removed per user request
 
     const activeSessions = activeAllRecords.filter(r => filteredStaffIds.has(r.staff_id));
     const activeNowCount = activeSessions.length;
