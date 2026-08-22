@@ -185,7 +185,7 @@ exports.autoLogoutInactiveSessions = functions.pubsub.schedule("every 1 minutes"
         lastActiveDate = data.clock_in.toDate();
       }
 
-      // If they haven't sent a heartbeat in over 10 minutes
+      // If they haven't sent a heartbeat in over cutoff time (40s)
       if (lastActiveDate && lastActiveDate < cutoff) {
         const cinDate = data.clock_in.toDate();
         const diffMin = Math.max(1, Math.round((lastActiveDate.getTime() - cinDate.getTime()) / 60000));
@@ -211,3 +211,4 @@ exports.autoLogoutInactiveSessions = functions.pubsub.schedule("every 1 minutes"
   }
   return null;
 });
+
