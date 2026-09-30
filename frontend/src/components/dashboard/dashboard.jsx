@@ -1594,9 +1594,9 @@ export default function Dashboard() {
                                 <span className="text-emerald-400 font-mono text-sm font-bold">{formatTimeShort(actualIn)}</span>
                               </td>
                               <td className="px-4 py-4">
-                                <span className="text-rose-400 font-mono text-sm font-bold">{actualOut ? (act.location_out === "System Auto-Logout" && (!act.edit_reason || act.edit_reason.trim() === "") ? "--" : formatTimeShort(actualOut)) : '--:--'}</span>
+                                <span className="text-rose-400 font-mono text-sm font-bold">{actualOut ? formatTimeShort(actualOut) : '--:--'}</span>
                                 {actualOut && act.location_out === "System Auto-Logout" && (!act.edit_reason || act.edit_reason.trim() === "") && (
-                                  <span className="text-[9px] uppercase tracking-widest text-white/40 block mt-1">(Auto Logouted)</span>
+                                  <span className="text-[9px] uppercase tracking-widest text-white/40 block mt-1">(Auto Logout)</span>
                                 )}
                               </td>
                               <td className="px-4 py-4">
